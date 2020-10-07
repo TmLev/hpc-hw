@@ -3,4 +3,5 @@ target_link_libraries(
   01-knapsack
   PRIVATE project_warnings
           project_options
+          await
 )

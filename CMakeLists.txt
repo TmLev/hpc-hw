@@ -16,4 +16,6 @@ add_library(project_warnings INTERFACE)
 include(cmake/Warnings.cmake)
 set_project_warnings(project_warnings)
 
+add_subdirectory(third-party)
+
 add_subdirectory(01-knapsack)
