@@ -1,0 +1,13 @@
+Language: Cpp
+BasedOnStyle: Google
+
+AlignEscapedNewlines: Left
+AlignTrailingComments: true
+
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+SortIncludes: false
