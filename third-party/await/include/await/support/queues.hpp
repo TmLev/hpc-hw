@@ -106,8 +106,7 @@ class MPSCLockFreeQueue {
     std::vector<T> items;
     while (node != nullptr) {
       items.push_back(std::move(node->item_));
-      auto to_delete = node;
-      node = node->next_;
+      auto to_delete = std::exchange(node, node->next_);
       delete to_delete;
     }
     std::reverse(items.begin(), items.end());
