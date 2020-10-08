@@ -90,17 +90,21 @@ auto Solve(const std::string& filename) -> void {
   tp->Join();
 }
 
-auto Answer(int test) -> int {
+auto SmallAnswer(int test) -> int {
   auto f = std::fstream{"tests/small/" + std::to_string(test) + ".out"};
   auto answer = 0;
   f >> answer;
   return answer;
 }
 
-auto main() -> int {
+auto SmallTests() -> void {
   for (auto test = 1; test <= 41; ++test) {
     Solve("tests/small/" + std::to_string(test) + ".in");
-    std::cerr << (max_price == Answer(test) ? "." : "F") << std::flush;
+    std::cerr << (max_price == SmallAnswer(test) ? "." : "F") << std::flush;
     max_price = 0;
   }
+}
+
+auto main() -> int {
+  SmallTests();
 }
