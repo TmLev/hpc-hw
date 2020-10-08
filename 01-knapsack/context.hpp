@@ -4,11 +4,9 @@
 
 #include "knapsack.hpp"
 
-using await::executors::IThreadPoolPtr;
-
 struct Context {
   // executor / thread pool
-  IThreadPoolPtr tp;
+  await::executors::IThreadPoolPtr tp;
 
   // knapsack and current item
   const knapsack::Knapsack& knapsack;

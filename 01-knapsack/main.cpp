@@ -2,7 +2,6 @@
 #include <fstream>
 #include <iostream>
 #include <mutex>
-#include <sstream>
 
 #include <await/executors/static_thread_pool.hpp>
 
