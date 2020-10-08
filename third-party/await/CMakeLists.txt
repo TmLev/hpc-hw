@@ -4,4 +4,5 @@ target_link_libraries(
   await
   INTERFACE project_warnings
             project_options
+            pthread
 )
