@@ -1,7 +1,8 @@
-#include <iostream>
+#include <algorithm>
 #include <fstream>
+#include <iostream>
+#include <mutex>
 #include <sstream>
-#include <numeric>
 
 #include <await/executors/static_thread_pool.hpp>
 
