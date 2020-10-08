@@ -1,24 +1,23 @@
 #include <algorithm>
+#include <atomic>
 #include <fstream>
 #include <iostream>
-#include <mutex>
 
 #include <await/executors/static_thread_pool.hpp>
 
 #include "context.hpp"
 #include "knapsack.hpp"
 
-std::mutex mutex;
-int max_price{0};
+std::atomic<int> max_price{0};
 
 auto GetMaxPrice() -> int {
-  auto lock = std::unique_lock{mutex};
-  return max_price;
+  return max_price.load();
 }
 
 auto UpdateMaxPrice(int price) -> void {
-  auto lock = std::unique_lock{mutex};
-  max_price = std::max(price, max_price);
+  auto old = max_price.load();
+  while (old < price && !max_price.compare_exchange_strong(old, price)) {
+  }
 }
 
 auto Bound(Context context) -> double {
@@ -60,12 +59,12 @@ auto Branch(Context context, bool root = false) -> void {
     UpdateMaxPrice(context.current_price + price);
   }
 
-  // branch without current node
+  // branch without item under cursor
   if (Bound(context) > GetMaxPrice()) {
     context.tp->Execute([context] { Branch(context); });
   }
 
-  // branch including current node
+  // branch including item under cursor
   context.current_price += price;
   context.current_weight += weight;
   if (Bound(context) > GetMaxPrice()) {
@@ -79,13 +78,13 @@ auto Solve(const std::string& filename) -> void {
     return;
   }
   if (knapsack.AllItemsFit()) {
-    max_price = knapsack.GetTotalPrice();
+    max_price.store(knapsack.GetTotalPrice());
     return;
   }
 
   knapsack.SortItems();
 
-  auto tp = await::executors::MakeStaticThreadPool(4, "default");
+  auto tp = await::executors::MakeStaticThreadPool(4);
   auto context = Context{tp, knapsack};
   tp->Execute([context] { Branch(context, /*root=*/ true); });
   tp->Join();
