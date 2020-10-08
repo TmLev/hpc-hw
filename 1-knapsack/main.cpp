@@ -1,64 +1,78 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <string>
 
 #include <await/executors/static_thread_pool.hpp>
 
 #include "context.hpp"
 #include "knapsack.hpp"
 
+////////////////////////////////////////////////////////////////////////////////
+////
+//// Config
+////
+
+static constexpr auto kBatchSize = 256;
+static constexpr auto kThreadCount = 4;
+
 MaxPrice max_price;
 
-auto Bound(Context context) -> double {
-  if (context.current_weight > context.knapsack.capacity) {
-    return 0;
-  }
+////////////////////////////////////////////////////////////////////////////////
+////
+//// Algorithms
+////
 
-  const auto& ks = context.knapsack;
-  auto& cs = context.cursor;
-
-  auto current_price = static_cast<double>(context.current_price);
-  auto current_weight = context.current_weight;
-
-  while (++cs < ks.items.size() &&
-         current_weight + ks.items[cs].weight <= ks.capacity) {
-    current_price += ks.items[cs].price;
-    current_weight += ks.items[cs].weight;
-  }
-
-  if (cs < ks.items.size()) {
-    current_price += (ks.capacity - current_weight) * ks.items[cs].GetRank();
-  }
-
-  return current_price;
-}
-
-auto Branch(Context context, bool root = false) -> void {
-  // no branching in the last node
-  if (context.cursor + 1 >= context.knapsack.items.size()) {
-    return;
-  }
-
-  if (!root) {
-    context.cursor += 1;
-  }
-
-  auto [price, weight] = context.knapsack.items[context.cursor];
-  if (context.current_weight + weight <= context.knapsack.capacity) {
-    max_price.Update(context.current_price + price);
+auto SingleBranch(const knapsack::Knapsack& ks, State state, States* states)
+    -> void {
+  auto [price, weight] = ks.items[state.cursor];
+  if (state.current_weight + weight <= ks.capacity) {
+    max_price.Update(state.current_price + price);
   }
 
   // branch without item under cursor
-  if (Bound(context) > max_price.Get()) {
-    context.tp->Execute([context] { Branch(context); });
+  if (state.ComputeBound(ks) > max_price.Get()) {
+    states->push(state);
   }
 
   // branch including item under cursor
-  context.current_price += price;
-  context.current_weight += weight;
-  if (Bound(context) > max_price.Get()) {
-    context.tp->Execute([context] { Branch(context); });
+  state.current_price += price;
+  state.current_weight += weight;
+  if (state.ComputeBound(ks) > max_price.Get()) {
+    states->push(state);
   }
+}
+
+auto Branch(Context context, bool root = false) -> void;
+
+auto BatchPost(Context context) -> void {
+  for (const auto& s : Split(std::move(context.states), kBatchSize)) {
+    auto ctx = context;
+    ctx.states = s;
+    context.tp->Execute([ctx = std::move(ctx)] { Branch(ctx); });
+  }
+}
+
+auto Branch(Context context, bool root) -> void {
+  auto states = std::move(context.states);
+  if (root) {
+    states.push({});
+  }
+
+  while (!states.empty()) {
+    auto state = states.top();
+    states.pop();
+
+    root ? root = false : state.cursor += 1;
+    SingleBranch(context.knapsack, state, &states);
+
+    if (states.size() >= kThreadCount * kBatchSize) {
+      break;
+    }
+  }
+
+  context.states = std::move(states);
+  BatchPost(std::move(context));
 }
 
 auto Solve(const std::string& filename) -> void {
@@ -73,33 +87,43 @@ auto Solve(const std::string& filename) -> void {
 
   knapsack.SortItems();
 
-  auto tp = await::executors::MakeStaticThreadPool(1);
+  auto tp = await::executors::MakeStaticThreadPool(kThreadCount);
   auto context = Context{tp, knapsack};
-  tp->Execute([context] { Branch(context, /*root=*/ true); });
+  tp->Execute([context] { Branch(context, /*root=*/true); });
   tp->Join();
 }
 
-auto SmallAnswer(int test) -> int {
-  auto f = std::fstream{"tests/small/" + std::to_string(test) + ".out"};
+////////////////////////////////////////////////////////////////////////////////
+////
+//// Tests
+////
+
+auto GetAnswer(const std::string& type, int test) -> int {
+  auto f = std::fstream{"tests/" + type + "/" + std::to_string(test) + ".out"};
   auto answer = 0;
   f >> answer;
   return answer;
 }
 
-auto SmallTests() -> void {
-  for (auto test = 1; test <= 41; ++test) {
-    Solve("tests/small/" + std::to_string(test) + ".in");
-    std::cerr << (max_price.Get() == SmallAnswer(test) ? "." : "F");
+auto RunTests(const std::string& type) -> void {
+  std::cerr << "[" << type[0] << "] ";
+
+  auto last = (type == "small" ? 41 : 10);
+  for (auto test = 1; test <= last; ++test) {
     max_price.Clear();
+    Solve("tests/" + type + "/" + std::to_string(test) + ".in");
+    std::cerr << (max_price.Get() == GetAnswer(type, test) ? "." : "F");
   }
+
+  std::cerr << '\n';
 }
 
-auto MediumTests() -> void {
-  for (auto test = 1; test <= 1; ++test) {
-    Solve("tests/medium/test_100_" + std::to_string(test) + ".in");
-  }
-}
+////////////////////////////////////////////////////////////////////////////////
+////
+//// main
+////
 
 auto main() -> int {
-  SmallTests();
+  RunTests("small");
+  RunTests("medium");
 }
