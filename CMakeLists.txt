@@ -18,4 +18,4 @@ set_project_warnings(project_warnings)
 
 add_subdirectory(third-party)
 
-add_subdirectory(01-knapsack)
+add_subdirectory(1-knapsack)
