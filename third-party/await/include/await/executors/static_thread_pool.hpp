@@ -15,7 +15,7 @@ namespace await::executors {
 
 class StaticThreadPool final : public IThreadPool {
  public:
-  StaticThreadPool(size_t threads, const std::string& name) : name_(name) {
+  StaticThreadPool(size_t threads) {
     LaunchWorkerThreads(threads);
   }
 
@@ -82,7 +82,6 @@ class StaticThreadPool final : public IThreadPool {
   }
 
  private:
-  std::string name_;
   support::MPMCBlockingQueue<Task> tasks_;
   std::vector<std::thread> workers_;
   std::atomic<size_t> work_count_{0};
@@ -91,8 +90,8 @@ class StaticThreadPool final : public IThreadPool {
 };
 
 // Fixed-size pool of threads + unbounded blocking queue
-IThreadPoolPtr MakeStaticThreadPool(size_t threads, const std::string& name) {
-  return std::make_shared<StaticThreadPool>(threads, name);
+IThreadPoolPtr MakeStaticThreadPool(size_t threads) {
+  return std::make_shared<StaticThreadPool>(threads);
 }
 
 }  // namespace await::executors
