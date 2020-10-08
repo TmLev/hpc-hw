@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <atomic>
 #include <fstream>
 #include <iostream>
 
@@ -8,17 +7,7 @@
 #include "context.hpp"
 #include "knapsack.hpp"
 
-std::atomic<int> max_price{0};
-
-auto GetMaxPrice() -> int {
-  return max_price.load();
-}
-
-auto UpdateMaxPrice(int price) -> void {
-  auto old = max_price.load();
-  while (old < price && !max_price.compare_exchange_strong(old, price)) {
-  }
-}
+MaxPrice max_price;
 
 auto Bound(Context context) -> double {
   if (context.current_weight > context.knapsack.capacity) {
@@ -56,18 +45,18 @@ auto Branch(Context context, bool root = false) -> void {
 
   auto [price, weight] = context.knapsack.items[context.cursor];
   if (context.current_weight + weight <= context.knapsack.capacity) {
-    UpdateMaxPrice(context.current_price + price);
+    max_price.Update(context.current_price + price);
   }
 
   // branch without item under cursor
-  if (Bound(context) > GetMaxPrice()) {
+  if (Bound(context) > max_price.Get()) {
     context.tp->Execute([context] { Branch(context); });
   }
 
   // branch including item under cursor
   context.current_price += price;
   context.current_weight += weight;
-  if (Bound(context) > GetMaxPrice()) {
+  if (Bound(context) > max_price.Get()) {
     context.tp->Execute([context] { Branch(context); });
   }
 }
@@ -78,13 +67,13 @@ auto Solve(const std::string& filename) -> void {
     return;
   }
   if (knapsack.AllItemsFit()) {
-    max_price.store(knapsack.GetTotalPrice());
+    max_price.Update(knapsack.GetTotalPrice());
     return;
   }
 
   knapsack.SortItems();
 
-  auto tp = await::executors::MakeStaticThreadPool(4);
+  auto tp = await::executors::MakeStaticThreadPool(1);
   auto context = Context{tp, knapsack};
   tp->Execute([context] { Branch(context, /*root=*/ true); });
   tp->Join();
@@ -100,8 +89,14 @@ auto SmallAnswer(int test) -> int {
 auto SmallTests() -> void {
   for (auto test = 1; test <= 41; ++test) {
     Solve("tests/small/" + std::to_string(test) + ".in");
-    std::cerr << (max_price == SmallAnswer(test) ? "." : "F") << std::flush;
-    max_price = 0;
+    std::cerr << (max_price.Get() == SmallAnswer(test) ? "." : "F");
+    max_price.Clear();
+  }
+}
+
+auto MediumTests() -> void {
+  for (auto test = 1; test <= 1; ++test) {
+    Solve("tests/medium/test_100_" + std::to_string(test) + ".in");
   }
 }
 

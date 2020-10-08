@@ -1,4 +1,5 @@
 add_executable(1-knapsack
+  context.cpp
   knapsack.cpp
   main.cpp)
 target_link_libraries(
