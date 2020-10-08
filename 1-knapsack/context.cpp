@@ -22,7 +22,7 @@ auto Split(States states, std::size_t batch_size) -> std::vector<States> {
   auto count = std::max(1ul, states.size() / batch_size);
   auto splits = std::vector<States>{count};
 
-  for (auto i = std::size_t{0}; ; ++i) {
+  for (auto i = std::size_t{0};; ++i) {
     if (i + 1 == count) {
       splits[i] = std::move(states);
       break;
