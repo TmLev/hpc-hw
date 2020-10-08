@@ -45,7 +45,7 @@ auto Bound(Context context) -> double {
   return current_price;
 }
 
-auto Branch(Context context, bool root = false) {
+auto Branch(Context context, bool root = false) -> void {
   // no branching in the last node
   if (context.cursor + 1 >= context.knapsack.items.size()) {
     return;
@@ -87,7 +87,7 @@ auto Solve(const std::string& filename) -> void {
 
   auto tp = await::executors::MakeStaticThreadPool(4, "default");
   auto context = Context{tp, knapsack};
-  tp->Execute([context] { Branch(context, true); });
+  tp->Execute([context] { Branch(context, /*root=*/ true); });
   tp->Join();
 }
 
