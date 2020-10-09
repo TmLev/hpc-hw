@@ -26,6 +26,10 @@ ultimately will contain only one feasible solution, one of which will be optimal
 * Source code is located in [`src`](src) directory.
 
 ## Benchmarks
+Measurements were taken on 3,1 GHz Dual-Core Intel Core i5 (2 cores, 4 threads with hyper-threading enabled)
+in [`Release`](https://cmake.org/cmake/help/v3.18/variable/CMAKE_BUILD_TYPE.html) build
+after ensuring that ThreadSanitizer reported no errors and turning it off.
+
 * The algorithm performs rather uniform on small tests no matter how many threads are running.
   
   ![small-absolute](plots/small-tests-absolute.png)
