@@ -29,7 +29,7 @@ ultimately will contain only one feasible solution, one of which will be optimal
 * The algorithm performs rather uniform on small tests no matter how many threads are running.
   
   ![small-absolute](plots/small-tests-absolute.png)
-
+  
 * However, there is a remarkable difference for medium tests. 
   As can be seen below, single thread requires too much time on tests 6 and 10
   to be compared against multithreaded runs.
@@ -39,6 +39,11 @@ ultimately will contain only one feasible solution, one of which will be optimal
 * For clarity, here is the same plot as above but without single thread measurements.
   
   ![medium-absolute-without-one](plots/medium-tests-absolute-without-one.png)
+
+* Relative *mean* speedups for each group of tests is shown below.  
+  Keep in mind that benchmarks for small tests don't differ much in absolute values.
+  
+  ![small-speedup](plots/small-speedup.png) ![medium-speedup](plots/medium-speedup.png)
 
 ## References
 * https://www0.gsb.columbia.edu/mygsb/faculty/research/pubfiles/4407/kolesar_branch_bound.pdf
