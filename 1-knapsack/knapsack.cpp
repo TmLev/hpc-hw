@@ -4,12 +4,7 @@
 
 #include "knapsack.hpp"
 
-namespace knapsack {
-
 ////////////////////////////////////////////////////////////////////////////////
-////
-//// Item
-////
 
 auto Item::GetRank() const -> double {
   return static_cast<double>(price) / weight;
@@ -24,36 +19,25 @@ auto operator>>(std::istream& in, Item& item) -> std::istream& {
   return in;
 }
 
-auto operator<<(std::ostream& out, const Item& item) -> std::ostream& {
-  out << "{p = " << item.price << ", w = " << item.weight
-      << ", r = " << item.GetRank() << "}";
-  return out;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
-////
-//// Knapsack
-////
 
 auto Knapsack::TooHeavyItems() const -> bool {
-  return std::all_of(
-      std::begin(items), std::end(items),
-      [&](const knapsack::Item& item) { return item.weight > capacity; });
+  return std::all_of(std::begin(items), std::end(items),
+                     [&](const Item& item) { return item.weight > capacity; });
 }
 
 auto Knapsack::AllItemsFit() const -> bool {
-  const auto total_weight =
-      std::accumulate(std::begin(items), std::end(items), 0,
-                      [](int accum, const knapsack::Item& item) {
-                        accum += item.weight;
-                        return accum;
-                      });
+  const auto total_weight = std::accumulate(std::begin(items), std::end(items),
+                                            0, [](int accum, const Item& item) {
+                                              accum += item.weight;
+                                              return accum;
+                                            });
   return total_weight <= capacity;
 }
 
 auto Knapsack::GetTotalPrice() const -> int {
   return std::accumulate(std::begin(items), std::end(items), 0,
-                         [](int accum, const knapsack::Item& item) {
+                         [](int accum, const Item& item) {
                            accum += item.price;
                            return accum;
                          });
@@ -83,5 +67,3 @@ auto ReadFrom(const std::string& filename) -> Knapsack {
 
   return ks;
 }
-
-}  // namespace knapsack
