@@ -13,8 +13,11 @@ include(cmake/Ccache.cmake)
 
 add_library(project_options INTERFACE)
 if (ENABLE_THREAD_SANITIZER)
+  message(STATUS "thread sanitizer is enabled")
   include(cmake/Sanitizers.cmake)
   enable_thread_sanitizer(project_options)
+else()
+  message(STATUS "thread sanitizer is disabled")
 endif()
 
 add_library(project_warnings INTERFACE)
