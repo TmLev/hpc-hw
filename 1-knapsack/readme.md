@@ -23,6 +23,7 @@ ultimately will contain only one feasible solution, one of which will be optimal
 * Algorithm uses thread pool to which one posts new `Tasks` for `workers` to execute. 
 * Each `Task` consists of some number of `States` (or nodes, in terms of b&b method) for `worker` to check. 
 * `States` are sorted in decreasing order with respect to possible bound.
+* Source code is located in [`src`](src) directory.
 
 ## Benchmarks
 * The algorithm performs rather uniform on small tests no matter how many threads are running.
