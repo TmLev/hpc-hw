@@ -1,7 +1,8 @@
 add_executable(1-knapsack
   context.cpp
   knapsack.cpp
-  main.cpp)
+  main.cpp
+  solver.cpp)
 
 target_link_libraries(
   1-knapsack
