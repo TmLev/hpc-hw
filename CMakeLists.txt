@@ -5,12 +5,17 @@ project(
   VERSION 0.1.0
   LANGUAGES CXX)
 
+# Public options
+option(ENABLE_THREAD_SANITIZER "Enable thread sanitizer for project" OFF)
+
 include(cmake/Settings.cmake)
 include(cmake/Ccache.cmake)
 
 add_library(project_options INTERFACE)
-include(cmake/Sanitizers.cmake)
-enable_thread_sanitizer(project_options)
+if (ENABLE_THREAD_SANITIZER)
+  include(cmake/Sanitizers.cmake)
+  enable_thread_sanitizer(project_options)
+endif()
 
 add_library(project_warnings INTERFACE)
 include(cmake/Warnings.cmake)
