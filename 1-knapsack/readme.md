@@ -1,5 +1,8 @@
 # Knapsack
 
+## Problem
+Problem statement can be found [here](problem.pdf) (English version is not available at the time of writing).
+
 ## Algorithm
 The main idea is, of course, branch and bound method. Algorithm proceeds by repeatedly partitioning the class
 of all feasible solutions into smaller and smaller subclasses in such a way that
