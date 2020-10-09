@@ -9,19 +9,23 @@
 
 #include "knapsack.hpp"
 
+////////////////////////////////////////////////////////////////////////////////
+
 struct MaxPrice {
  public:
   auto Get() -> int;
   auto Update(int price) -> void;
-  auto Clear() -> void;
+  auto Clear(int init = 0) -> void;
 
  private:
   std::atomic<int> price_{0};
 };
 
+////////////////////////////////////////////////////////////////////////////////
+
 struct State {
  public:
-  auto ComputeBound(const knapsack::Knapsack& ks) -> double;
+  auto ComputeBound(const Knapsack& ks) -> double;
 
  public:
   // current item in knapsack
@@ -40,12 +44,3 @@ auto operator<(const State& left, const State& right) -> bool;
 using States = std::priority_queue<State>;
 
 auto Split(States states, std::size_t batch_size) -> std::vector<States>;
-
-struct Context {
-  // executor / thread pool
-  await::executors::IThreadPoolPtr tp;
-
-  // knapsack and set of states
-  const knapsack::Knapsack& knapsack;
-  States states{};
-};
