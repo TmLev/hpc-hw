@@ -31,7 +31,8 @@ ultimately will contain only one feasible solution, one of which will be optimal
   ![small-absolute](plots/small-tests-absolute.png)
 
 * However, there is a remarkable difference for medium tests. 
-  As can be seen below, single thread requires too much time on tests 6 and 10 to be compared against multithreaded run.
+  As can be seen below, single thread requires too much time on tests 6 and 10
+  to be compared against multithreaded runs.
   
   ![medium-absolute](plots/medium-tests-absolute.png)
 
