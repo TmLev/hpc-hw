@@ -27,3 +27,4 @@ set_project_warnings(project_warnings)
 add_subdirectory(third-party)
 
 add_subdirectory(1-knapsack)
+add_subdirectory(2-cluster)
