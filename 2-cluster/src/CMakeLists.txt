@@ -1,6 +1,8 @@
 find_package(OpenMP REQUIRED)
 
 add_executable(2-cluster
+  cluster.cpp
+  solver.cpp
   main.cpp)
 
 target_link_libraries(
