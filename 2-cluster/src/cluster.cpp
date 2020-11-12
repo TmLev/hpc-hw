@@ -8,8 +8,12 @@ auto Point::DistanceTo(const Point& other) const -> double {
 }
 
 auto Point::operator+=(const Point& other) -> Point& {
+#pragma omp atomic
   x += other.x;
+
+#pragma omp atomic
   y += other.y;
+
   return *this;
 }
 
@@ -39,6 +43,8 @@ auto Cluster::DistanceTo(const Point& p) const -> double {
 
 auto Cluster::Add(const Point& p) -> void {
   update_ += p;
+
+#pragma omp atomic
   size_ += 1;
 }
 
