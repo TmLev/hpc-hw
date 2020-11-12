@@ -14,8 +14,8 @@ struct Point {
   auto operator+=(const Point& other) -> Point&;
 
  public:
-  double x{0};
-  double y{0};
+  alignas(config::hardware_destructive_interference_size) double x{0};
+  alignas(config::hardware_destructive_interference_size) double y{0};
   config::Index cluster_index{0};
 };
 
@@ -39,7 +39,7 @@ class Cluster {
  private:
   Point centroid_{};
   Point update_{};
-  config::Size size_{0};
+  alignas(config::hardware_destructive_interference_size) config::Size size_{0};
 };
 
 using Clusters = std::vector<Cluster>;
