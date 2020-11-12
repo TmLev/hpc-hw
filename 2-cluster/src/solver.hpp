@@ -5,8 +5,6 @@
 
 class Solver {
  public:
-  explicit Solver(config::Size thread_count);
-
   auto Solve(const std::string& input, const std::string& output) -> void;
 
  private:
@@ -21,8 +19,6 @@ class Solver {
   auto Write(const std::string& output) -> void;
 
  private:
-  const config::Size thread_count_;
-
   Points points_;
   Clusters clusters_;
 };

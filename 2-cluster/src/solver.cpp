@@ -6,9 +6,6 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-Solver::Solver(std::size_t thread_count) : thread_count_(thread_count) {
-}
-
 auto Solver::Solve(const std::string& input, const std::string& output)
     -> void {
   Read(input);
@@ -61,11 +58,15 @@ auto Solver::ChooseRandomCentroids() -> void {
 }
 
 auto Solver::Step() -> bool {
+#pragma omp parallel for num_threads(config::kThreadCount) schedule(guided)
   for (auto p = config::Index{0}; p < points_.size(); ++p) {
     Assign(points_[p]);
   }
 
   auto updated = false;
+
+  // NOLINTNEXTLINE
+#pragma omp parallel for num_threads(config::kThreadCount) schedule(guided) reduction(|:updated)
   for (auto c = config::Index{0}; c < clusters_.size(); ++c) {
     updated |= clusters_[c].Update();
   }
