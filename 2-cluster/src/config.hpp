@@ -13,7 +13,7 @@ using Mcs = std::chrono::microseconds;
 using Durations = std::vector<std::result_of_t<decltype (&Mcs::count)(Mcs)>>;
 
 constexpr auto kTestCount = 5;
-constexpr auto kThreadCount = 1;
+constexpr auto kThreadCount = 4;
 
 #if __cpp_lib_hardware_interference_size > 201703L
 

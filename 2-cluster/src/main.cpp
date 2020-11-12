@@ -12,7 +12,7 @@ auto RunTests(std::ostream& log = std::cerr) -> Durations {
   auto durations = Durations{};
 
   for (auto test = 1; test <= kTestCount; ++test) {
-    auto solver = Solver{kThreadCount};
+    auto solver = Solver{};
     auto input = "data/" + std::to_string(test);
     auto output = "results/" + std::to_string(test);
 
