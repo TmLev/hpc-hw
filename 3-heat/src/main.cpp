@@ -1,12 +1,12 @@
 #include <iostream>
+#include <vector>
 
 #include <mpi.h>
-#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
 
 constexpr auto kPieces = std::size_t{11};
-constexpr auto kRodLength = double{1};
+constexpr auto kLength = double{1};
 constexpr auto kThermalDiffusivity = double{1};  // k
 constexpr auto kSpaceStep = double{0.02};        // h
 constexpr auto kTimeStep = double{0.0002};       // dt
@@ -35,6 +35,23 @@ constexpr auto kTimeStep = double{0.0002};       // dt
 
 ////////////////////////////////////////////////////////////////////////////////
 
+struct WorldGuard {
+  WorldGuard(int c, char** v) : argc(c), argv(v) {
+    std::cout << "Starting...\n";
+    EXPECT_OK(MPI_Init(&argc, &argv));
+  }
+
+  ~WorldGuard() {
+    MPI_Finalize();
+    std::cout << "Finished\n";
+  }
+
+  int argc;
+  char** argv;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
 auto GetRank() -> std::size_t {
   auto rank = 0;
   EXPECT_OK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
@@ -50,11 +67,9 @@ auto GetProcessCount() -> std::size_t {
 }
 
 auto main(int argc, char* argv[]) -> int {
-  EXPECT_OK(MPI_Init(&argc, &argv));
+  auto guard = WorldGuard{argc, argv};
 
   auto rank = GetRank();
   auto process_count = GetProcessCount();
   auto rod = std::vector<double>(kPieces + 2, 0);
-
-  MPI_Finalize();
 }
