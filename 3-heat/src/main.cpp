@@ -66,6 +66,8 @@ auto GetProcessCount() -> std::size_t {
   return static_cast<std::size_t>(process_count);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 auto main(int argc, char* argv[]) -> int {
   auto guard = WorldGuard{argc, argv};
 
