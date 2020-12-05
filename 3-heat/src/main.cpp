@@ -68,7 +68,7 @@ auto GetProcessCount() -> std::size_t {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-auto main(int argc, char* argv[]) -> int {
+auto main(int argc, char** argv) -> int {
   auto guard = WorldGuard{argc, argv};
 
   auto rank = GetRank();
