@@ -7,9 +7,14 @@ DecGenerator = tp.Generator[float, None, None]
 
 ROD_LENGTH = 1.0
 ROD_PIECES = 11
-THERMAL_DIFFUSIVITY = 1.0
-TIME_STEP = 0.0002
+SPACE_STEP = ROD_LENGTH / (ROD_PIECES - 1)
+
 HEAT_INIT = 1
+THERMAL_DIFFUSIVITY = 1.0
+
+TIME_STEP = 0.0002
+TIME_BEGIN = 0.0
+TIME_END = 0.1
 
 
 def decrange(start: float, stop: float, step: float) -> DecGenerator:
@@ -38,13 +43,9 @@ def compute_row(x: float, t: float) -> float:
 
 
 def main() -> None:
-    rod = [0.0 for _ in range(ROD_PIECES)]
-
-    for time in decrange(0.0, 0.1, TIME_STEP):
-        for i in range(len(rod)):
-            rod[i] = 4.0 * HEAT_INIT / pi * compute_row(0.1 * i, time)
-
-    print(rod)
+    rod = [4.0 * HEAT_INIT / pi * compute_row(0.1 * i, TIME_END) for i in
+           range(ROD_PIECES)]
+    print(*rod)
 
 
 if __name__ == "__main__":
