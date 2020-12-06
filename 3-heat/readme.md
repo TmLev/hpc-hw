@@ -45,7 +45,7 @@ Measurements were taken on 3,1 GHz Dual-Core Intel Core i5
 [`Release`](https://cmake.org/cmake/help/v3.18/variable/CMAKE_BUILD_TYPE.html)
 build. There are no speedups for experiments with more than 4 threads because of
 the overhead induced by context switching, OS preemptive nature, MPI's message
-passing, etc.
+passing synchronization, etc.
 
 ![merged](plots/merged.png)
 
