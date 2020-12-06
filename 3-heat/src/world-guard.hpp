@@ -5,7 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 struct WorldGuard {
-  WorldGuard(int c, char** v, std::ostream& l = std::cout);
+  WorldGuard(int c, char** v, std::ostream& l = std::cerr);
   ~WorldGuard();
 
   int argc;
