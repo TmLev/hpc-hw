@@ -1,6 +1,5 @@
+#include <algorithm>
 #include <cmath>
-#include <iostream>
-#include <sstream>
 
 #include <mpi.h>
 
@@ -10,7 +9,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-using namespace config;
+using namespace config;  // NOLINT
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -163,9 +162,7 @@ auto Process::RecvAll(int tag) -> DVec {
   assert(IsFirst());
 
   auto result = DVec(kPieces, 0);
-  std::copy(std::begin(heat_) + 1, std::end(heat_) - 1, std::begin(result));
-
-  auto cursor = std::begin(result) + pieces_;  // NOLINT
+  auto cursor = std::copy_n(std::begin(heat_) + 1, pieces_, std::begin(result));
 
   for (auto source = 1; source < process_count_; ++source) {  // NOLINT
     auto buf = &*cursor;
