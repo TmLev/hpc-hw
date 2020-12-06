@@ -47,9 +47,7 @@ build. There are no speedups for experiments with more than 4 threads because of
 the overhead induced by context switching, OS preemptive nature, MPI's message
 passing, etc.
 
-![time-2k](plots/time-2k.png)
-![time-10k](plots/time-10k.png)
-![time-50k](plots/time-50k.png)
+![merged](plots/merged.png)
 
 ## References
 
