@@ -6,7 +6,7 @@ from math import pi, exp, sin
 DecGenerator = tp.Generator[float, None, None]
 
 ROD_LENGTH = 1.0
-ROD_PIECES = 11
+ROD_PIECES = 51
 SPACE_STEP = ROD_LENGTH / (ROD_PIECES - 1)
 
 HEAT_INIT = 1
@@ -43,8 +43,8 @@ def compute_row(x: float, t: float) -> float:
 
 
 def main() -> None:
-    rod = [4.0 * HEAT_INIT / pi * compute_row(0.1 * i, TIME_END) for i in
-           range(ROD_PIECES)]
+    rod = [4.0 * HEAT_INIT / pi * compute_row(SPACE_STEP * i, TIME_END)
+           for i in range(ROD_PIECES)]
     print(*rod)
 
 
