@@ -71,7 +71,7 @@ auto Process::Step() -> void {
 
 // Collect data from all processes. First process is master.
 auto Process::Collect() -> std::optional<DVec> {
-  auto result = DVec{};
+  auto result = std::optional<DVec>{};
   auto recvcounts = std::vector<int>{static_cast<int>(pieces_)};
   auto displs = std::vector<int>{0};
 
@@ -89,9 +89,9 @@ auto Process::Collect() -> std::optional<DVec> {
   }
 
   // NOLINTNEXTLINE
-  EXPECT_OK(MPI_Gatherv(&heat_[1], pieces_, MPI_DOUBLE, result.data(),
-                        recvcounts.data(), displs.data(), MPI_DOUBLE, 0,
-                        MPI_COMM_WORLD));
+  EXPECT_OK(MPI_Gatherv(&heat_[1], pieces_, MPI_DOUBLE,
+                        result ? result->data() : nullptr, recvcounts.data(),
+                        displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD));
 
   return result;
 }
