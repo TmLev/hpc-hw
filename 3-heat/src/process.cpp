@@ -89,9 +89,9 @@ auto Process::Collect() -> std::optional<DVec> {
   }
 
   // NOLINTNEXTLINE
-  EXPECT_OK(MPI_Gatherv(&heat_[1], pieces_, MPI_DOUBLE,
+  EXPECT_OK(MPI_Gatherv(&heat_[1], pieces_, DOUBLE,
                         result ? result->data() : nullptr, recvcounts.data(),
-                        displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD));
+                        displs.data(), DOUBLE, 0, MPI_COMM_WORLD));
 
   return result;
 }
@@ -106,15 +106,14 @@ auto Process::SendRecvLast() -> void {
   // Send – all except last.
   if (!IsLast()) {
     const auto dest = static_cast<int>(rank_) + 1;
-    EXPECT_OK(
-        MPI_Send(&heat_[pieces_], 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD));
+    EXPECT_OK(MPI_Send(&heat_[pieces_], 1, DOUBLE, dest, tag, MPI_COMM_WORLD));
   }
 
   // Receive – all except first.
   if (!IsFirst()) {
     const auto source = static_cast<int>(rank_) - 1;
-    EXPECT_OK(MPI_Recv(&heat_.front(), 1, MPI_DOUBLE, source, tag,
-                       MPI_COMM_WORLD, nullptr));
+    EXPECT_OK(MPI_Recv(&heat_.front(), 1, DOUBLE, source, tag, MPI_COMM_WORLD,
+                       nullptr));
   }
 }
 
@@ -126,14 +125,14 @@ auto Process::SendRecvFirst() -> void {
   // Send – all except first.
   if (!IsFirst()) {
     const auto dest = static_cast<int>(rank_) - 1;
-    EXPECT_OK(MPI_Send(&heat_[1], 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD));
+    EXPECT_OK(MPI_Send(&heat_[1], 1, DOUBLE, dest, tag, MPI_COMM_WORLD));
   }
 
   // Receive – all except last.
   if (!IsLast()) {
     const auto source = static_cast<int>(rank_) + 1;
-    EXPECT_OK(MPI_Recv(&heat_.back(), 1, MPI_DOUBLE, source, tag,
-                       MPI_COMM_WORLD, nullptr));
+    EXPECT_OK(MPI_Recv(&heat_.back(), 1, DOUBLE, source, tag, MPI_COMM_WORLD,
+                       nullptr));
   }
 }
 

@@ -3,11 +3,13 @@
 #include <optional>
 #include <vector>
 
+#include "types.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 
 class Process {
  public:
-  using DVec = std::vector<double>;
+  using DVec = std::vector<Double>;
 
  public:
   Process();
