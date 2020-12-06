@@ -71,14 +71,29 @@ auto Process::Step() -> void {
 
 // Collect data from all processes. First process is master.
 auto Process::Collect() -> std::optional<DVec> {
-  const auto tag = 3;
+  auto result = DVec{};
+  auto recvcounts = std::vector<int>{static_cast<int>(pieces_)};
+  auto displs = std::vector<int>{0};
 
   if (IsFirst()) {
-    return RecvAll(tag);
-  } else {
-    SendAll(tag);
-    return std::nullopt;
+    result = DVec(kPieces, 0);
+    recvcounts.reserve(process_count_);
+    displs.reserve(process_count_);
+
+    for (auto source = 1; source < process_count_; ++source) {        // NOLINT
+      const auto count = static_cast<int>(ComputePiecesFor(source));  // NOLINT
+      const auto displ = displs.back() + recvcounts.back();
+      recvcounts.push_back(count);
+      displs.push_back(displ);
+    }
   }
+
+  // NOLINTNEXTLINE
+  EXPECT_OK(MPI_Gatherv(&heat_[1], pieces_, MPI_DOUBLE, result.data(),
+                        recvcounts.data(), displs.data(), MPI_DOUBLE, 0,
+                        MPI_COMM_WORLD));
+
+  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -147,32 +162,6 @@ auto Process::ZeroEnds() -> void {
     heat_[pieces_] = 0;
     heat_[pieces_ + 1] = 0;
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-auto Process::SendAll(int tag) -> void {
-  assert(!IsFirst());
-
-  const auto count = static_cast<int>(pieces_);
-  EXPECT_OK(MPI_Send(&heat_[1], count, MPI_DOUBLE, 0, tag, MPI_COMM_WORLD));
-}
-
-auto Process::RecvAll(int tag) -> DVec {
-  assert(IsFirst());
-
-  auto result = DVec(kPieces, 0);
-  auto cursor = std::copy_n(std::begin(heat_) + 1, pieces_, std::begin(result));
-
-  for (auto source = 1; source < process_count_; ++source) {  // NOLINT
-    auto buf = &*cursor;
-    const auto count = static_cast<int>(ComputePiecesFor(source));  // NOLINT
-    EXPECT_OK(
-        MPI_Recv(buf, count, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, nullptr));
-    cursor += count;
-  }
-
-  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -25,10 +25,6 @@ class Process {
   auto Update() -> void;
   auto ZeroEnds() -> void;
 
-  // Collect impl
-  auto SendAll(int tag) -> void;
-  auto RecvAll(int tag) -> DVec;
-
   // Meta
   auto IsFirst() const -> bool;
   auto IsLast() const -> bool;
