@@ -14,23 +14,6 @@ using namespace config;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-auto Print(const Process::DVec& heat, std::string_view delim = " ") -> void {
-  auto ss = std::stringstream{};
-  auto first = true;
-
-  for (const auto& h : heat) {
-    if (!first) {
-      ss << delim;
-    } else {
-      first = false;
-    }
-
-    ss << h;
-  }
-
-  std::cout << ss.str() << "\n\n";
-}
-
 auto GetRank() -> std::size_t {
   auto rank = -1;
   EXPECT_OK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
@@ -73,7 +56,6 @@ Process::Process() {
 auto Process::ComputeHeat() -> std::optional<Process::DVec> {
   for (auto time = kTimeBegin; time < kTimeEnd; time += kTimeStep) {
     Step();
-    Print(heat_);
   }
 
   return Collect();
