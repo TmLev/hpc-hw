@@ -7,7 +7,7 @@ namespace config {
 constexpr auto kLeftEnd = double{0};
 constexpr auto kRightEnd = double{1};
 constexpr auto kLength = kRightEnd - kLeftEnd;
-constexpr auto kPieces = std::size_t{51};
+constexpr auto kPieces = std::size_t{11};
 constexpr auto kSpaceStep = kLength / (kPieces - 1);  // h
 
 constexpr auto kEnvHeat = double{0};             // environment temperature
