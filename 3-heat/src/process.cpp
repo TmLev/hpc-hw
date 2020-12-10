@@ -35,6 +35,11 @@ auto IsLastProcess(std::size_t rank, std::size_t process_count) -> bool {
   return rank + 1 == process_count;
 }
 
+auto HeatFormula(Double left, Double middle, Double right) -> Double {
+  return middle + kThermalDiffusivity * kTimeStep / std::pow(kSpaceStep, 2) *
+                      (right - 2 * middle + left);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 Process::Process() {
@@ -43,11 +48,13 @@ Process::Process() {
   pieces_ = ComputePiecesFor(rank_);
 
   // `heat` represents pieces of rod. `.front()` and `.back()` are used for
-  // message passing between neighbours, hence + 2.
+  // message passing between neighbours, hence `+ 2`.
   heat_ = DVec(pieces_ + 2, kInitHeat);
   next_heat_ = DVec(pieces_ + 2, 0);
-
   ZeroEnds();
+
+  // `requests` save MPI Send/Recv requests to do them in asynchronous fashion.
+  InitRequests();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,9 +70,10 @@ auto Process::ComputeHeat() -> std::optional<Process::DVec> {
 ////////////////////////////////////////////////////////////////////////////////
 
 auto Process::Step() -> void {
-  SendRecvLast();
-  SendRecvFirst();
-  Recalculate();
+  StartRequests();
+  RecalculateMiddle();
+  WaitRequests();
+  RecalculateEnds();
   Update();
 }
 
@@ -98,51 +106,19 @@ auto Process::Collect() -> std::optional<DVec> {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Send `heat[last]` to neighbour `rank + 1`.
-// Receive message from neighbour `rank - 1` to `heat.front()`.
-auto Process::SendRecvLast() -> void {
-  const auto tag = 1;
-
-  // Send – all except last.
-  if (!IsLast()) {
-    const auto dest = static_cast<int>(rank_) + 1;
-    EXPECT_OK(MPI_Send(&heat_[pieces_], 1, DOUBLE, dest, tag, MPI_COMM_WORLD));
-  }
-
-  // Receive – all except first.
-  if (!IsFirst()) {
-    const auto source = static_cast<int>(rank_) - 1;
-    EXPECT_OK(MPI_Recv(&heat_.front(), 1, DOUBLE, source, tag, MPI_COMM_WORLD,
-                       nullptr));
+// Recalculate heat for interval `[2, process_pieces - 1]`.
+auto Process::RecalculateMiddle() -> void {
+  for (auto i = std::size_t{2}; i + 1 <= pieces_; ++i) {
+    const auto h = HeatFormula(heat_[i - 1], heat_[i], heat_[i + 1]);
+    next_heat_[i] = std::clamp(h, kEnvHeat, kInitHeat);
   }
 }
 
-// Send `heat[first]` to neighbour `rank - 1`.
-// Receive message from neighbour `rank + 1` to `heat.back()`.
-auto Process::SendRecvFirst() -> void {
-  const auto tag = 2;
-
-  // Send – all except first.
-  if (!IsFirst()) {
-    const auto dest = static_cast<int>(rank_) - 1;
-    EXPECT_OK(MPI_Send(&heat_[1], 1, DOUBLE, dest, tag, MPI_COMM_WORLD));
-  }
-
-  // Receive – all except last.
-  if (!IsLast()) {
-    const auto source = static_cast<int>(rank_) + 1;
-    EXPECT_OK(MPI_Recv(&heat_.back(), 1, DOUBLE, source, tag, MPI_COMM_WORLD,
-                       nullptr));
-  }
-}
-
-// Recalculate heat for interval `[1, process_pieces]`.
-auto Process::Recalculate() -> void {
-  for (auto i = std::size_t{1}; i <= pieces_; ++i) {
-    const auto n = heat_[i] + kThermalDiffusivity * kTimeStep /
-                                  std::pow(kSpaceStep, 2) *
-                                  (heat_[i + 1] - 2 * heat_[i] + heat_[i - 1]);
-    next_heat_[i] = std::clamp(n, kEnvHeat, kInitHeat);
+// Recalculate heat for the leftmost and the rightmost points.
+auto Process::RecalculateEnds() -> void {
+  for (auto i : {std::size_t{1}, pieces_}) {
+    const auto h = HeatFormula(heat_[i - 1], heat_[i], heat_[i + 1]);
+    next_heat_[i] = std::clamp(h, kEnvHeat, kInitHeat);
   }
 }
 
@@ -161,6 +137,79 @@ auto Process::ZeroEnds() -> void {
     heat_[pieces_] = 0;
     heat_[pieces_ + 1] = 0;
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+auto Process::InitRequests() -> void {
+  InitShareFirst();
+  InitShareLast();
+}
+
+// Send `heat[first]` to neighbour `rank - 1`.
+// Receive message from neighbour `rank + 1` to `heat.back()`.
+auto Process::InitShareFirst() -> void {
+  const auto tag = 2;
+
+  // Send – all except first.
+  if (!IsFirst()) {
+    const auto dest = static_cast<int>(rank_) - 1;
+    auto request = MPI_Request{};
+    EXPECT_OK(MPI_Send_init(&heat_[1], 1, DOUBLE, dest, tag, MPI_COMM_WORLD,
+                            &request));
+    requests_.push_back(std::move(request));
+  }
+
+  // Receive – all except last.
+  if (!IsLast()) {
+    const auto source = static_cast<int>(rank_) + 1;
+    auto request = MPI_Request{};
+    EXPECT_OK(MPI_Recv_init(&heat_.back(), 1, DOUBLE, source, tag,
+                            MPI_COMM_WORLD, &request));
+    requests_.push_back(std::move(request));
+  }
+}
+
+// Send `heat[last]` to neighbour `rank + 1`.
+// Receive message from neighbour `rank - 1` to `heat.front()`.
+auto Process::InitShareLast() -> void {
+  const auto tag = 1;
+
+  // Send – all except last.
+  if (!IsLast()) {
+    const auto dest = static_cast<int>(rank_) + 1;
+    auto request = MPI_Request{};
+    EXPECT_OK(MPI_Send_init(&heat_[pieces_], 1, DOUBLE, dest, tag,
+                            MPI_COMM_WORLD, &request));
+    requests_.push_back(std::move(request));
+  }
+
+  // Receive – all except first.
+  if (!IsFirst()) {
+    const auto source = static_cast<int>(rank_) - 1;
+    auto request = MPI_Request{};
+    EXPECT_OK(MPI_Recv_init(&heat_.front(), 1, DOUBLE, source, tag,
+                            MPI_COMM_WORLD, &request));
+    requests_.push_back(std::move(request));
+  }
+}
+
+auto Process::StartRequests() -> void {
+  if (requests_.empty()) {
+    return;
+  }
+
+  const auto count = static_cast<int>(requests_.size());
+  EXPECT_OK(MPI_Startall(count, requests_.data()));
+}
+
+auto Process::WaitRequests() -> void {
+  if (requests_.empty()) {
+    return;
+  }
+
+  const auto count = static_cast<int>(requests_.size());
+  EXPECT_OK(MPI_Waitall(count, requests_.data(), MPI_STATUSES_IGNORE));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
