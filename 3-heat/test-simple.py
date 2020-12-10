@@ -7,7 +7,8 @@ from math import pi, exp, sin
 DecGenerator = tp.Generator[float, None, None]
 Heat = tp.List[float]
 
-PROCESSES = 4
+BUILD_TYPE = "release"
+PROCESSES = "4"
 
 ROD_LENGTH = 1.0  # l
 ROD_PIECES = 51
@@ -47,7 +48,7 @@ def compute_row(x: float, t: float) -> float:
 
 
 def get_mpi_answer() -> Heat:
-    completed = subprocess.run(["./run-mpi.sh", str(PROCESSES)],
+    completed = subprocess.run(["./run-mpi.sh", BUILD_TYPE, PROCESSES],
                                capture_output=True)
     _, heat, *_ = completed.stdout.decode().split("\n")
     return list(map(float, heat.split()))
