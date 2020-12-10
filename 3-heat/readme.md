@@ -32,8 +32,9 @@ with the exact solution is roughly `0.000010874`.
 * `WorldGuard` checks for solution possibility and
   [throws](https://github.com/TmLev/hpc-hw/blob/9774133ced3ed53131c70b698f1dec1adfabaf9f/3-heat/src/world-guard.cpp#L19)
   if configuration is invalid.
-* Value sharing with the previous/next (w.r.t. rank) neighbours is done
-  using `MPI_Send/MPI_Recv`.
+* Value sharing with the previous/next (w.r.t. rank) neighbours is done by using
+  async versions of `MPI_Send/MPI_Recv` with the help
+  of `MPI_Startall/MPI_Waitall`.
 * The first process collects data from other processes in the end using
   `MPI_Gatherv`.
 * Source code is located in [`src`](src) directory.
