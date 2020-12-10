@@ -43,11 +43,19 @@ with the exact solution is roughly `0.000010874`.
 Measurements were taken on 3,1 GHz Dual-Core Intel Core i5
 (**2** cores, **4** threads with hyper-threading enabled) in
 [`Release`](https://cmake.org/cmake/help/v3.18/variable/CMAKE_BUILD_TYPE.html)
-build. There are no speedups for experiments with more than 4 threads because of
-the overhead induced by context switching, OS preemptive nature, MPI's message
-passing synchronization, etc.
+build. Different numbers of rod points taken for computations require different
+configurations, so take these plots with a grain of salt.
 
 ![merged](plots/merged.png)
+
+There are no speedups for experiments with more than 4 threads because of the
+several reasons. First of all, the machine used for benchmarking has only 2
+cores and some number of background tasks running at the same time. Then, there
+is a considerable overhead induced by the context switching (jump to kernel,
+store multiple registers, swap stack, jump back to userspace), while doing some
+other tasks (caused by OS preemptive nature). Last, MPI's message passing
+protocol includes some kind of synchronization between processes which is not
+free also.
 
 ## References
 
