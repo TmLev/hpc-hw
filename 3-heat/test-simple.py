@@ -60,22 +60,22 @@ def get_exact_answer() -> Heat:
     return list(map(round_, heat))
 
 
-def compute_error(mpi: Heat, exact: Heat) -> float:
-    err = 0.0
-    for i in range(len(mpi)):
-        err += (mpi[i] - exact[i]) ** 2
-    return err
+def compute_errors(mpi: Heat, exact: Heat) -> Heat:
+    return [abs(mpi[i] - exact[i]) for i in range(len(mpi))]
 
 
 def main() -> None:
-    mpi = get_mpi_answer()
-    print(f"MPI program solution: {mpi}\n")
+    mpi = get_mpi_answer()[0::5]
+    print("MPI program solution:", mpi, sep="\n", end="\n\n")
 
-    exact = get_exact_answer()
-    print(f"Exact solution: {exact}\n")
+    exact = get_exact_answer()[0::5]
+    print("Exact solution:", exact, sep="\n", end="\n\n")
 
-    error = compute_error(mpi, exact)
-    print(f"Error: {error}")
+    errors = compute_errors(mpi, exact)
+    print("Per point errors for 11 points (0.0, 0.1, ..., 1.0):",
+          errors, sep="\n", end="\n\n")
+
+    print(f"Mean error: {sum(errors) / len(errors)}")
 
 
 if __name__ == "__main__":
